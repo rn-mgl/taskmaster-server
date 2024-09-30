@@ -8,10 +8,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/csrf_token', function () {
-
-    logger(Auth::check() ? "Yes" : "no");
-
     return response()->json(['csrf_token' => csrf_token()]);
+});
+
+Route::get("/check_auth", function() {
+    return response()->json(['authenticated' => Auth::check()]);
 });
 
 Route::controller(RegisterController::class)->group(function() {
