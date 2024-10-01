@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Validation\ValidationException;
+use Firebase\JWT\JWT;
 
 class SessionController extends Controller
 {
@@ -42,7 +44,20 @@ class SessionController extends Controller
             ]);
         }
 
-        return response()->json(['success' => $attempt]);
+        $request->session()->regenerate();
+        $user = Auth::user();
+        $encryptedUser = Crypt::encryptString($user->id);
+
+        $payload = [
+            'iss' => 'http://localhost:3000',
+            'sub' => $encryptedUser,
+            'iat' => time(),
+            'exp' => time() + 3600 * 24
+        ];
+
+        $token = JWT::encode($payload, env("JWT_SECRET"), "HS256");
+
+        return response()->json(['success' => $attempt, 'token' => $token]);
     }
 
     /**
