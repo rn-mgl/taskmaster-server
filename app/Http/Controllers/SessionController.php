@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Validation\ValidationException;
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 
 class SessionController extends Controller
 {
@@ -47,6 +49,13 @@ class SessionController extends Controller
         $request->session()->regenerate();
         $user = Auth::user();
         $encryptedUser = Crypt::encryptString($user->id);
+        $isVerified = $user->email_verified_at;
+
+        if (!$isVerified) {
+            $request->user()->sendEmailVerificationNotification();
+
+            return response()->json(['success' => $attempt, 'isVerified' => $isVerified]);
+        }
 
         $payload = [
             'iss' => 'http://localhost:3000',
@@ -57,7 +66,7 @@ class SessionController extends Controller
 
         $token = JWT::encode($payload, env("JWT_SECRET"), "HS256");
 
-        return response()->json(['success' => $attempt, 'token' => $token]);
+        return response()->json(['success' => $attempt, 'isVerified' => $isVerified, 'token' => $token]);
     }
 
     /**
@@ -90,5 +99,32 @@ class SessionController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function verify(Request $request)
+    {
+        $authorization  = $request->header("Authorization");
+        $authenticated = false;
+
+        if (!$authorization || !str_starts_with($authorization, "Bearer ")) {
+            return response()->json(['authenticated' => $authenticated]);
+        }
+
+        $token = explode(" ", $authorization)[1];
+
+        if ($token) {
+            try {
+                $decoded = JWT::decode($token, new Key(env("JWT_SECRET"), "HS256"));
+                $decrypted =  Crypt::decrypt($decoded->sub, false);
+                $user = User::find($decrypted);
+                if ($user) {
+                    $authenticated = true;
+                }
+            } catch (\Throwable $th) {
+                //throw $th;
+            }
+        }
+
+        return response()->json(['authenticated' => $authenticated]);
     }
 }

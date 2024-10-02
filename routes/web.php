@@ -14,38 +14,12 @@ Route::get('/csrf_token', function () {
     return response()->json(['csrf_token' => csrf_token()]);
 });
 
-Route::get("/check_auth", function(Request $request) {
-
-    $authorization  = $request->header("Authorization");
-    $authenticated = false;
-
-    if (!$authorization || !str_starts_with($authorization, "Bearer ")) {
-        return response()->json(['authenticated' => $authenticated]);
-    }
-
-    $token = explode(" ", $authorization)[1];
-
-    if ($token) {
-        try {
-            $decoded = JWT::decode($token, new Key(env("JWT_SECRET"), "HS256"));
-            $decrypted =  Crypt::decrypt($decoded->sub, false);
-            $user = User::find($decrypted);
-            if ($user) {
-                $authenticated = true;
-            }
-        } catch (\Throwable $th) {
-            //throw $th;
-        }
-    }
-
-    return response()->json(['authenticated' => $authenticated]);
-});
-
 Route::controller(RegisterController::class)->group(function() {
     Route::post("/register", "store");
 });
 
 Route::controller(SessionController::class)->group(function() {
+    Route::get("/check_auth", "verify");
     Route::post("/login", "store");
 });
 
