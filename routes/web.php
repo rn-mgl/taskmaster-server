@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\SessionController;
+use App\Http\Controllers\TaskController;
 use App\Models\User;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -39,4 +41,12 @@ Route::middleware("auth")->group(function() {
 
         return response()->json(['message' => 'Email verification sent!']);
     })->middleware([ 'throttle:6,1'])->name('verification.send');
+
+    Route::controller(ProjectController::class)->group(function() {
+        Route::post("/create_project", "store");
+    });
+
+    Route::controller(TaskController::class)->group(function() {
+        Route::post("/create_task", "store");
+    });
 });
