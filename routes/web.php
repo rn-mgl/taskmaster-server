@@ -1,15 +1,12 @@
 <?php
 
+use App\Http\Controllers\FileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\TaskController;
-use App\Models\User;
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/csrf_token', function () {
@@ -41,6 +38,10 @@ Route::middleware("auth")->group(function() {
 
         return response()->json(['message' => 'Email verification sent!']);
     })->middleware([ 'throttle:6,1'])->name('verification.send');
+
+    Route::controller(FileController::class)->group(function() {
+        Route::post("/upload_file", "store");
+    });
 
     Route::controller(ProjectController::class)->group(function() {
         Route::post("/create_project", "store");

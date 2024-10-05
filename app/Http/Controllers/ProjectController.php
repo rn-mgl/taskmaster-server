@@ -35,6 +35,7 @@ class ProjectController extends Controller
         $attributes = $request->validate([
             "title" => ["string", "required"],
             "description" => ["string", "required"],
+            "banner_image" => ["string", "nullable"],
             "deadline" => ["date", "required"],
             "status" => ["string", "required"],
         ]);
@@ -59,6 +60,7 @@ class ProjectController extends Controller
         $project_data = [
             "title" => $attributes["title"],
             "description" => $attributes["description"],
+            "banner_image" => $attributes["banner_image"],
             "deadline" => $attributes["deadline"],
             "status" => $status,
             "code" => $code,
