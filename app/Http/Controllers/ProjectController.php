@@ -16,7 +16,9 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        //
+        $projects = Project::where("created_by", Auth::id())->get();
+
+        return response()->json(["projects" => $projects]);
     }
 
     /**
@@ -47,7 +49,7 @@ class ProjectController extends Controller
             "Done" => 3
         ];
 
-        $status = $statusMapping[$attributes['status']];
+        $status = (int)$statusMapping[$attributes['status']];
 
         if (!$status) {
             throw ValidationException::withMessages([
